@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Client Dashboard - Stackly</title>
+  <!-- Chart.js for premium charting -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,400&display=swap');
+
+    body, html {
+      margin: 0; padding: 0; background: #F8FAFC; font-family: 'Inter', sans-serif; color: #1E293B;
+    }
+
+    /* Top Navigation */
+    .dash-nav {
+      background: #001B2E; color: #FFF; padding: 0 40px; height: 75px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 4px 20px rgba(0, 27, 46, 0.1);
+    }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand img { height: 26px; width: auto; filter: brightness(0) invert(1); }
+    
+    .nav-profile { display: flex; align-items: center; gap: 20px; }
+    .user-info { text-align: right; display: none; }
+    @media (min-width: 600px) { .user-info { display: block; } }
+    .user-info .name { font-weight: 700; font-size: 14px; margin: 0; color: #FFFFFF; text-transform: capitalize; }
+    .user-info .email { font-size: 12px; color: #A0C4D6; margin: 0; }
+    
+    .avatar { width: 42px; height: 42px; background: #FFD700; color: #001B2E; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; border: 2px solid #FFFFFF; text-transform: uppercase;}
+    .logout-btn { background: rgba(255,255,255,0.1); color: #FFF; border: 1px solid rgba(255,255,255,0.2); padding: 10px 18px; border-radius: 50px; cursor: pointer; font-size: 13px; font-weight: 600; transition: 0.3s; text-decoration: none; }
+    .logout-btn:hover { background: #EF4444; border-color: #EF4444; }
+
+    /* Layout */
+    .dashboard-container { max-width: 1400px; margin: 40px auto; padding: 0 20px; }
+    
+    .welcome-header { margin-bottom: 40px; }
+    .welcome-header h1 { font-family: 'Playfair Display', serif; font-size: 36px; margin: 0 0 8px 0; color: #002D44; }
+    .welcome-header p { color: #64748B; font-size: 16px; margin: 0; }
+
+    /* Stats Grid */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 25px; margin-bottom: 40px; }
+    .stat-card { background: #FFF; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #E2E8F0; position: relative; overflow: hidden;}
+    .stat-card::before { content:''; position: absolute; top:0; left:0; width: 5px; height: 100%; background: #006699; border-radius: 5px 0 0 5px; }
+    .stat-card:nth-child(2)::before { background: #FFD700; }
+    .stat-card:nth-child(3)::before { background: #10B981; }
+    .stat-card:nth-child(4)::before { background: #8B5CF6; }
+    
+    .stat-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;}
+    .stat-card h3 { font-size: 13px; color: #64748B; margin: 0; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;}
+    .stat-icon { width: 36px; height: 36px; border-radius: 10px; background: #F8FAFC; display: flex; align-items: center; justify-content: center; color: #002D44;}
+    .stat-card .value { font-size: 40px; font-weight: 900; color: #002D44; margin: 0; line-height: 1;}
+    .stat-card .trend { font-size: 13px; font-weight: 600; margin-top: 10px; display: inline-flex; align-items: center; gap: 5px;}
+    .trend.up { color: #10B981; }
+    .trend.down { color: #EF4444; }
+
+    /* Chart Grid */
+    .chart-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; margin-bottom: 40px;}
+    @media (max-width: 1024px) { .chart-grid { grid-template-columns: 1fr; } }
+    
+    /* Panels */
+    .panel { background: #FFF; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #E2E8F0; overflow: hidden; display: flex; flex-direction: column;}
+    .panel-header { padding: 25px 30px; border-bottom: 1px solid #F1F5F9; display: flex; justify-content: space-between; align-items: center; background: #FFFFFF;}
+    .panel-header h2 { margin: 0; font-size: 18px; color: #0F172A; font-weight: 800;}
+    .panel-body { padding: 30px; flex-grow: 1; position: relative;}
+
+    /* Table Styles */
+    .content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; }
+    @media (max-width: 1024px) { .content-grid { grid-template-columns: 1fr; } }
+
+    .shipment-table-wrapper { overflow-x: auto; }
+    .shipment-table { width: 100%; border-collapse: collapse; text-align: left; min-width: 600px;}
+    .shipment-table th { padding: 18px 25px; background: #F8FAFC; color: #64748B; font-weight: 700; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid #E2E8F0;}
+    .shipment-table td { padding: 20px 25px; border-bottom: 1px solid #F1F5F9; font-size: 14px; color: #334155; vertical-align: middle;}
+    .shipment-table tr:hover { background: #F8FAFC; }
+    
+    .status-badge { padding: 6px 12px; border-radius: 30px; font-size: 12px; font-weight: 700; display: inline-block;}
+    .status-transit { background: rgba(2, 132, 199, 0.1); color: #0284C7; border: 1px solid rgba(2, 132, 199, 0.2);}
+    .status-pending { background: rgba(217, 119, 6, 0.1); color: #D97706; border: 1px solid rgba(217, 119, 6, 0.2);}
+    .status-delivered { background: rgba(5, 150, 105, 0.1); color: #059669; border: 1px solid rgba(5, 150, 105, 0.2);}
+
+    .carrier-info { display: flex; align-items: center; gap: 10px; font-weight: 600; color: #002D44;}
+
+    /* Documents List */
+    .doc-list { display: flex; flex-direction: column; gap: 15px; padding: 25px;}
+    .doc-item { display: flex; align-items: center; justify-content: space-between; padding: 15px; border: 1px solid #E2E8F0; border-radius: 12px; transition: 0.3s;}
+    .doc-item:hover { border-color: #006699; background: #F8FAFC;}
+    .doc-info { display: flex; align-items: center; gap: 15px; }
+    .doc-icon { width: 40px; height: 40px; background: rgba(0, 102, 153, 0.1); color: #006699; border-radius: 10px; display: flex; align-items: center; justify-content: center;}
+    .doc-text h4 { margin: 0 0 4px 0; font-size: 14px; color: #1E293B; font-weight: 700;}
+    .doc-text p { margin: 0; font-size: 12px; color: #64748B; }
+    .doc-download { color: #64748B; text-decoration: none; padding: 8px; border-radius: 8px; transition: 0.3s; background: #FFFFFF; border: 1px solid #E2E8F0;}
+    .doc-download:hover { color: #002D44; border-color: #002D44; background: #F1F5F9;}
+
+  </style>
+</head>
+<body>
+
+  <nav class="dash-nav">
+    <a href="index.html" class="brand">
+      <img src="whitelogo.webp" alt="Stackly Logo">
+    </a>
+    <div class="nav-profile">
+      <div class="user-info">
+        <p class="name" id="display-name">Loading...</p>
+        <p class="email" id="display-email">loading@email.com</p>
+      </div>
+      <div class="avatar" id="display-avatar">U</div>
+      <a href="login.html" class="logout-btn">Sign Out</a>
+    </div>
+  </nav>
+
+  <div class="dashboard-container">
+    <div class="welcome-header">
+      <h1 id="welcome-message">Welcome back.</h1>
+      <p>Here is your comprehensive global logistics overview for this quarter.</p>
+    </div>
+
+    <!-- STATS GRID -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-header">
+          <h3>Active Shipments</h3>
+          <div class="stat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg></div>
+        </div>
+        <p class="value">24</p>
+        <span class="trend up"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg> +12% vs last month</span>
+      </div>
+      <div class="stat-card">
+        <div class="stat-header">
+          <h3>Total Spend (YTD)</h3>
+          <div class="stat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div>
+        </div>
+        <p class="value">$142.5K</p>
+        <span class="trend down"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"></polyline><polyline points="16 17 22 17 22 11"></polyline></svg> -4% cost reduction</span>
+      </div>
+      <div class="stat-card">
+        <div class="stat-header">
+          <h3>Pending Quotes</h3>
+          <div class="stat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div>
+        </div>
+        <p class="value">5</p>
+        <span class="trend" style="color: #64748B;">Awaiting your approval</span>
+      </div>
+      <div class="stat-card">
+        <div class="stat-header">
+          <h3>Carbon Saved</h3>
+          <div class="stat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>
+        </div>
+        <p class="value">1.2T</p>
+        <span class="trend up">Via eco-routing optimization</span>
+      </div>
+    </div>
+
+    <!-- CHARTS GRID -->
+    <div class="chart-grid">
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Freight Spend Analysis (Last 6 Months)</h2>
+        </div>
+        <div class="panel-body">
+          <canvas id="spendChart" width="100%" height="35"></canvas>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Shipment Distribution</h2>
+        </div>
+        <div class="panel-body" style="display: flex; justify-content: center; align-items: center;">
+          <canvas id="distributionChart" width="100%" height="70"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENT GRID -->
+    <div class="content-grid">
+      <!-- Shipments Table -->
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Live Shipments</h2>
+          <button style="background: #F1F5F9; border: none; padding: 8px 15px; border-radius: 8px; font-weight: 600; color: #002D44; cursor: pointer; font-size: 13px;">Export CSV</button>
+        </div>
+        <div class="shipment-table-wrapper">
+          <table class="shipment-table">
+            <thead>
+              <tr>
+                <th>Tracking ID</th>
+                <th>Mode</th>
+                <th>Route</th>
+                <th>ETA</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight: 700; color: #006699;">#STK-89234</td>
+                <td><span class="carrier-info"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 21h20v-2H2v2zm20-5.5V11c0-1.1-.9-2-2-2h-3V6c0-1.1-.9-2-2-2h-6c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v4.5c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2z"></path></svg> Ocean</span></td>
+                <td>Shanghai &rarr; Rotterdam</td>
+                <td style="font-weight: 600;">Apr 12, 2026</td>
+                <td><span class="status-badge status-transit">In Transit</span></td>
+              </tr>
+              <tr>
+                <td style="font-weight: 700; color: #006699;">#STK-89102</td>
+                <td><span class="carrier-info"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"></path></svg> Air</span></td>
+                <td>Tokyo &rarr; Los Angeles</td>
+                <td style="font-weight: 600;">Apr 08, 2026</td>
+                <td><span class="status-badge status-pending">Customs</span></td>
+              </tr>
+              <tr>
+                <td style="font-weight: 700; color: #006699;">#STK-88990</td>
+                <td><span class="carrier-info"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon></svg> Rail</span></td>
+                <td>Hamburg &rarr; Munich</td>
+                <td style="font-weight: 600;">Apr 02, 2026</td>
+                <td><span class="status-badge status-delivered">Delivered</span></td>
+              </tr>
+              <tr>
+                <td style="font-weight: 700; color: #006699;">#STK-88741</td>
+                <td><span class="carrier-info"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 21h20v-2H2v2zm20-5.5V11c0-1.1-.9-2-2-2h-3V6c0-1.1-.9-2-2-2h-6c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v4.5c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2z"></path></svg> Ocean</span></td>
+                <td>Mumbai &rarr; Dubai</td>
+                <td style="font-weight: 600;">Apr 18, 2026</td>
+                <td><span class="status-badge status-transit">In Transit</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Recent Documents -->
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Recent Documents</h2>
+        </div>
+        <div class="doc-list">
+          <div class="doc-item">
+            <div class="doc-info">
+              <div class="doc-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></div>
+              <div class="doc-text">
+                <h4>Invoice INV-2026-04</h4>
+                <p>PDF • 1.2 MB • Today</p>
+              </div>
+            </div>
+            <a href="404.html" class="doc-download"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></a>
+          </div>
+          <div class="doc-item">
+            <div class="doc-info">
+              <div class="doc-icon" style="background: rgba(16, 185, 129, 0.1); color: #10B981;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></div>
+              <div class="doc-text">
+                <h4>Customs Clearance #STK-89102</h4>
+                <p>PDF • 3.4 MB • Yesterday</p>
+              </div>
+            </div>
+            <a href="404.html" class="doc-download"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></a>
+          </div>
+          <div class="doc-item">
+            <div class="doc-info">
+              <div class="doc-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></div>
+              <div class="doc-text">
+                <h4>Bill of Lading #STK-88990</h4>
+                <p>PDF • 0.8 MB • Apr 02</p>
+              </div>
+            </div>
+            <a href="404.html" class="doc-download"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- LOAD DYNAMIC EMAIL DATA ---
+    document.addEventListener('DOMContentLoaded', () => {
+      // Retrieve the email saved from login.html. Fallback if accessed directly.
+      const userEmail = localStorage.getItem('stackly_user_email') || 'client@enterprise.com';
+      
+      // Update DOM
+      document.getElementById('display-email').innerText = userEmail;
+      
+      // Extract name from email (e.g., john.doe@... -> John Doe)
+      const namePart = userEmail.split('@')[0];
+      const formattedName = namePart.replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      
+      document.getElementById('display-name').innerText = formattedName;
+      document.getElementById('welcome-message').innerText = `Welcome back, ${formattedName.split(' ')[0]}.`;
+      
+      // Set initial in avatar
+      document.getElementById('display-avatar').innerText = formattedName.charAt(0);
+
+      // --- INITIALIZE CHARTS ---
+      
+      // 1. Spend Analysis Chart (Line)
+      const ctxSpend = document.getElementById('spendChart').getContext('2d');
+      new Chart(ctxSpend, {
+        type: 'line',
+        data: {
+          labels: ['Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr'],
+          datasets: [{
+            label: 'Freight Spend ($ USD)',
+            data: [28000, 32000, 25000, 29000, 34000, 24500],
+            borderColor: '#006699',
+            backgroundColor: 'rgba(0, 102, 153, 0.1)',
+            borderWidth: 3,
+            pointBackgroundColor: '#FFD700',
+            pointBorderColor: '#002D44',
+            pointRadius: 5,
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, grid: { borderDash: [5, 5], color: '#E2E8F0' }, border: {display: false} },
+            x: { grid: { display: false }, border: {display: false} }
+          }
+        }
+      });
+
+      // 2. Shipment Distribution Chart (Doughnut)
+      const ctxDist = document.getElementById('distributionChart').getContext('2d');
+      new Chart(ctxDist, {
+        type: 'doughnut',
+        data: {
+          labels: ['Ocean', 'Air', 'Rail', 'Road'],
+          datasets: [{
+            data: [55, 25, 10, 10],
+            backgroundColor: ['#002D44', '#006699', '#FFD700', '#A0C4D6'],
+            borderWidth: 0,
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          cutout: '75%',
+          plugins: {
+            legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20, font: {family: 'Inter', size: 12} } }
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>
