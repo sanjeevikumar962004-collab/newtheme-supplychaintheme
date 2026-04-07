@@ -31,9 +31,115 @@
     /* --- LAYOUT --- */
     .admin-layout {
       display: flex;
-      flex-direction: column;
+      flex-direction: row; /* Changed to row to accommodate sidebar */
       height: 100vh;
       overflow: hidden;
+      width: 100vw;
+    }
+
+    /* --- SIDEBAR --- */
+    .sidebar {
+      width: 280px;
+      background: var(--primary);
+      color: #FFF;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    .sidebar-header {
+      padding: 30px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .sidebar-header img {
+      height: 28px;
+      filter: brightness(0) invert(1);
+    }
+
+    .sidebar-nav {
+      flex-grow: 1;
+      padding: 20px 15px;
+      overflow-y: auto;
+    }
+
+    .nav-group {
+      margin-bottom: 25px;
+    }
+
+    .nav-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: rgba(255,255,255,0.3);
+      padding: 0 15px;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 15px;
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+      margin-bottom: 4px;
+    }
+
+    .nav-link:hover {
+      background: rgba(255,255,255,0.05);
+      color: #FFF;
+    }
+
+    .nav-link.active {
+      background: var(--accent);
+      color: #FFF;
+      box-shadow: 0 4px 12px rgba(0, 102, 153, 0.3);
+    }
+
+    .nav-link svg {
+      width: 18px;
+      height: 18px;
+      opacity: 0.7;
+    }
+
+    .nav-link.active svg {
+      opacity: 1;
+    }
+
+    .sidebar-footer {
+      padding: 20px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .upgrade-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.05);
+      padding: 15px;
+      border-radius: 12px;
+      font-size: 12px;
+    }
+
+    .upgrade-card p { margin: 0 0 10px 0; color: rgba(255,255,255,0.6); }
+    .btn-upgrade {
+      display: block;
+      text-align: center;
+      background: #FFD700;
+      color: var(--primary);
+      text-decoration: none;
+      padding: 8px;
+      border-radius: 6px;
+      font-weight: 700;
     }
 
     /* --- MAIN CONTENT WRAPPER --- */
@@ -93,7 +199,7 @@
     .action-btn:hover { color: var(--primary); }
     .action-badge { position: absolute; top: 0; right: 2px; width: 8px; height: 8px; background: var(--danger); border-radius: 50%; border: 2px solid #FFF;}
 
-    .btn-logout { background: var(--primary); color: #FFF; text-decoration: none; font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 6px; transition: 0.3s; }
+    .btn-logout { background: var(--primary); color: #FFF; text-decoration: none; font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 6px; transition: 0.3s; white-space: nowrap; }
     .btn-logout:hover { background: var(--danger); }
 
     /* --- DASHBOARD CONTENT --- */
@@ -173,21 +279,118 @@
     @media (max-width: 1024px) {
       .charts-grid, .tables-grid { grid-template-columns: 1fr; }
       .user-details { display: none; }
+      .user-profile-top { padding-right: 0; border-right: none; }
+      .topbar { padding: 0 15px; }
+      .topbar-actions { gap: 10px; }
+      
+      .sidebar {
+        position: fixed;
+        left: -280px;
+        top: 0;
+        bottom: 0;
+      }
+      .sidebar.open {
+        left: 0;
+      }
+      .sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 999;
+      }
+      .sidebar-overlay.active {
+        display: block;
+      }
+      .admin-layout {
+        flex-direction: column;
+      }
+      .main-wrapper {
+        width: 100%;
+      }
+      .menu-toggle {
+        display: flex !important;
+      }
+    }
+
+    .menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--primary);
+      cursor: pointer;
+      padding: 8px;
+      align-items: center;
+      justify-content: center;
     }
   </style>
 </head>
 <body>
 
   <div class="admin-layout">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="brand">
+            <img src="whitelogo.webp" alt="Stackly Logo">
+          </a>
+       
+      </div>
+      
+      <nav class="sidebar-nav">
+        <div class="nav-group">
+          <span class="nav-label">Main Console</span>
+          <a href="./404.html" class="nav-link active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            Dashboard
+          </a>
+          <a href="./404.html" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            User Management
+          </a>
+          <a href="./404.html" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+            Fleet Operations
+          </a>
+        </div>
+
+        <div class="nav-group">
+          <span class="nav-label">Insights</span>
+          <a href="./404.html" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg>
+            Revenue Analytics
+          </a>
+          <a href="./404.html" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            Audit Logs
+          </a>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="upgrade-card">
+          <p>Enterprise Plan active.</p>
+          <a href="./404.html" class="btn-upgrade">View Billing</a>
+        </div>
+      </div>
+    </aside>
     
     <!-- MAIN WRAPPER -->
     <div class="main-wrapper">
       
       <!-- TOPBAR -->
       <header class="topbar">
-        <a href="index.html" class="brand">
-          <img src="whitelogo.webp" alt="Stackly Logo">
-        </a>
+        <div class="topbar-left" style="display: flex; align-items: center; gap: 15px;">
+          <button class="menu-toggle" id="menuToggle">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+          </button>
+          <div class="topbar-brand">
+            
+            <span style="font-weight: 700; color: var(--primary); display: none;">Stackly Admin</span>
+          </div>
+        </div>
         <div class="topbar-actions">
           <div class="user-profile-top">
             <div class="user-avatar" id="topbar-avatar">A</div>
@@ -196,11 +399,11 @@
               <p id="topbar-email">admin@stackly.com</p>
             </div>
           </div>
-          <button class="action-btn">
+          <a href="404.html" class="action-btn">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
             <span class="action-badge"></span>
-          </button>
-          <a href="login.html" class="btn-logout">Logout</a>
+          </a>
+          <a href="index.html" class="btn-logout">Logout</a>
         </div>
       </header>
 
@@ -293,7 +496,7 @@
           <div class="panel">
             <div class="panel-header">
               <h2 class="panel-title">Pending Account Approvals</h2>
-              <button class="panel-action">View All</button>
+              <button class="panel-action"> All</button>
             </div>
             <div style="overflow-x: auto;">
               <table class="data-table">
@@ -318,7 +521,7 @@
                     </td>
                     <td>NA East</td>
                     <td><span class="badge bg-blue">Enterprise</span></td>
-                    <td><button class="btn-sm">Review</button></td>
+                    <td><a href="404.html" class="btn-sm" style="text-decoration: none;">Review</a></td>
                   </tr>
                   <tr>
                     <td>
@@ -332,7 +535,7 @@
                     </td>
                     <td>EU West</td>
                     <td><span class="badge bg-green">Standard</span></td>
-                    <td><button class="btn-sm">Review</button></td>
+                    <td><a href="404.html" class="btn-sm" style="text-decoration: none;">Review</a></td>
                   </tr>
                   <tr>
                     <td>
@@ -346,7 +549,7 @@
                     </td>
                     <td>APAC</td>
                     <td><span class="badge bg-blue">Enterprise</span></td>
-                    <td><button class="btn-sm">Review</button></td>
+                    <td><a href="404.html" class="btn-sm" style="text-decoration: none;">Review</a></td>
                   </tr>
                 </tbody>
               </table>
@@ -413,13 +616,32 @@
 
     // --- LOAD DYNAMIC EMAIL DATA ---
     document.addEventListener('DOMContentLoaded', () => {
-      // Retrieve the email saved from login.html. Fallback if accessed directly.
-      const userEmail = localStorage.getItem('stackly_user_email') || 'sysadmin@stackly.com';
-      document.getElementById('topbar-email').innerText = userEmail;
-      
-      // Update Avatar initial based on email
-      const initial = userEmail.charAt(0).toUpperCase();
-      document.getElementById('topbar-avatar').innerText = initial;
+      window.onload = function() {
+        // 0. Toggle Sidebar
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+        if (menuToggle && sidebar && sidebarOverlay) {
+          menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+            sidebarOverlay.classList.toggle('active');
+          });
+
+          sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('active');
+          });
+        }
+
+        // 1. Get user data from localStorage
+        const userEmail = localStorage.getItem('stackly_user_email') || 'sysadmin@stackly.com';
+        document.getElementById('topbar-email').innerText = userEmail;
+        
+        // Update Avatar initial based on email
+        const initial = userEmail.charAt(0).toUpperCase();
+        document.getElementById('topbar-avatar').innerText = initial;
+      };
 
       // Set global Chart.js styling
       Chart.defaults.font.family = "'Inter', sans-serif";
