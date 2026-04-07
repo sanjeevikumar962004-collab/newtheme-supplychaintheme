@@ -48,7 +48,7 @@
       position: relative; 
       width: 100%;
       z-index: 10; 
-      background: #00111A; 
+      background: #002D44; 
     }
 
     svg {
@@ -231,7 +231,7 @@
     /* --- Journey Supply Chain Section (Dark Base) --- */
     .journey-section {
       position: relative;
-      background: #001B2E; 
+      background: #002D44; 
       width: 100%;
       padding: 100px 20px 150px;
       color: #fff;
@@ -918,9 +918,158 @@
     .slider-btn .icon.arrow-left::before { content: ''; position: absolute; left: 1px; top: -4px; width: 10px; height: 10px; border-top: solid 2px currentColor; border-left: solid 2px currentColor; transform: rotate(-45deg); }
     .slider-btn .icon.arrow-right::before { content: ''; position: absolute; right: 1px; top: -4px; width: 10px; height: 10px; border-top: solid 2px currentColor; border-right: solid 2px currentColor; transform: rotate(45deg); }
     .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }
+
+    /* --- Preloader Styles --- */
+    #preloader {
+      position: fixed;
+      inset: 0;
+      background-color: #ffffff; 
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+    }
+
+    .loader-stage {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      margin-bottom: 2.5rem;
+    }
+
+    .vehicle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 70px;
+      height: 70px;
+      opacity: 0;
+      color: #FFD700; /* Premium Gold Yellow */
+    }
+
+    .ship { animation: sequenceShip 3s linear forwards; }
+    .truck { animation: sequenceTruck 3s linear forwards; }
+    .plane { animation: sequencePlane 3s linear forwards; }
+
+    @keyframes sequenceShip {
+      0% { opacity: 0; transform: translate(-120%, -50%); }
+      6.6% { opacity: 1; transform: translate(-50%, -50%); } 
+      26.6% { opacity: 1; transform: translate(-50%, -50%); } 
+      33.3% { opacity: 0; transform: translate(20%, -50%); } 
+      100% { opacity: 0; transform: translate(20%, -50%); }
+    }
+
+    @keyframes sequenceTruck {
+      0%, 33.3% { opacity: 0; transform: translate(-120%, -50%); }
+      40% { opacity: 1; transform: translate(-50%, -50%); } 
+      60% { opacity: 1; transform: translate(-50%, -50%); } 
+      66.6% { opacity: 0; transform: translate(20%, -50%); } 
+      100% { opacity: 0; transform: translate(20%, -50%); }
+    }
+
+    @keyframes sequencePlane {
+      0%, 66.6% { opacity: 0; transform: translate(-120%, 20%); }
+      73.3% { opacity: 1; transform: translate(-50%, -50%); } 
+      93.3% { opacity: 1; transform: translate(-50%, -50%); } 
+      100% { opacity: 0; transform: translate(20%, -120%); } 
+    }
+
+    .loading-text-container {
+      color: #0f172a;
+      font-size: 1.1rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      margin-bottom: 1.5rem;
+      height: 24px;
+    }
+
+    .loading-text::after {
+      content: "Preparing Cargo...";
+      animation: textChange 3s linear forwards;
+    }
+
+    @keyframes textChange {
+      0%, 32.9% { content: "Loading Cargo..."; }
+      33%, 65.9% { content: "Dispatching Fleet..."; }
+      66%, 100% { content: "Taking Off..."; }
+    }
+
+    .progress-container {
+      width: 240px;
+      height: 4px;
+      background-color: #e2e8f0;
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background-color: #FFD700;
+      border-radius: 4px;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+      animation: fillProgress 3s linear forwards;
+    }
+
+    @keyframes fillProgress {
+      0% { width: 0%; }
+      100% { width: 100%; }
+    }
+
+    .main-content {
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+
+    .main-content.visible {
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
+
+  <!-- Preloader Overlay -->
+  <div id="preloader">
+    <div class="loader-stage">
+      <!-- 1. Ship Icon -->
+      <svg class="vehicle ship" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 .6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 .6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2"/>
+        <path d="M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.94 5.34 2.81 7.76"/>
+        <path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"/>
+        <path d="M12 10v4"/>
+        <path d="M12 2v3"/>
+      </svg>
+
+      <!-- 2. Truck Icon -->
+      <svg class="vehicle truck" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="1" y="3" width="15" height="13"></rect>
+        <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+        <circle cx="5.5" cy="18.5" r="2.5"></circle>
+        <circle cx="18.5" cy="18.5" r="2.5"></circle>
+      </svg>
+
+      <!-- 3. Flight/Plane Icon -->
+      <svg class="vehicle plane" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.2-1.1.6L3 8l6.5 2.5L7 13l-4 1L2 15l4 2 2 4 1-1 1-4 2.5-2.5 2.5 6.5c.3.5.7.9 1.2.9.4.1.9-.3 1.1-.7l1.8-8.2z"/>
+      </svg>
+    </div>
+
+    <!-- Changing Text -->
+    <div class="loading-text-container">
+      <span class="loading-text"></span>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-container">
+      <div class="progress-bar"></div>
+    </div>
+  </div>
+
+  <div id="mainContent" class="main-content">
   
   <!-- Modern Navigation Bar -->
   <nav class="glass-nav">
@@ -1377,6 +1526,7 @@
       </div>
     </footer>
 
+  </div> <!-- End mainContent wrapper -->
   </div>
 
   <!-- GSAP & ScrollTrigger Libraries -->
@@ -1396,12 +1546,12 @@
         scrub: 1
       }
     })
-    .fromTo('.sky',   {y: 0},  {y: -50},  0)
-    .fromTo('.sun',   {y: 0},  {y: -80},  0)
-    .fromTo('.wave3', {y: 0},  {y: -60},  0)
-    .fromTo('.wave2', {y: 20}, {y: -140}, 0)
-    .fromTo('.ship1', {y: 30}, {y: -200}, 0)
-    .fromTo('.wave1', {y: 40}, {y: -280}, 0);
+    .fromTo('.sky',   {y: 0},  {y: -150},  0)
+    .fromTo('.sun',   {y: 0},  {y: -250},  0)
+    .fromTo('.wave3', {y: 0},  {y: -200},  0)
+    .fromTo('.wave2', {y: 20}, {y: -500}, 0)
+    .fromTo('.ship1', {y: 30}, {y: -600}, 0)
+    .fromTo('.wave1', {y: 40}, {y: -950}, 0);
 
     // UI Interactions
     const arrowBtn = document.querySelector('#arrow-btn');
@@ -1523,6 +1673,31 @@
       document.addEventListener('keydown', keyPress);
     };
     initSliders();
+
+    // Preloader Control Logic
+    document.addEventListener("DOMContentLoaded", () => {
+      // Wait for exactly 3000ms (3 seconds) to allow the animation to finish
+      setTimeout(() => {
+        const preloader = document.getElementById('preloader');
+        const mainContent = document.getElementById('mainContent');
+        
+        if (preloader) {
+          // Trigger fade out
+          preloader.style.opacity = '0';
+          preloader.style.visibility = 'hidden';
+          
+          // Reveal the main content with a smooth transition
+          if (mainContent) {
+            mainContent.classList.add('visible');
+          }
+
+          // Remove preloader from the DOM completely after fade-out transition (0.5s)
+          setTimeout(() => {
+            preloader.remove();
+          }, 500);
+        }
+      }, 3000);
+    });
 
   </script>
 </body>
